@@ -1,0 +1,53 @@
+#  == File: phpPgAdmin.yml
+#
+# Install & Configure PhpPgAdmin
+#
+#  == Copyright
+#     All Rights Reserved
+#
+# --------------------------------------------------------------------------
+# WARNING: This file belongs to the Core framework. Avoid any local changes
+# --------------------------------------------------------------------------
+#
+# This file is Managed by ANSIBLE
+# --------------------------------------------------------------------------
+
+
+- block:
+- name: Check directories
+  stat:
+    path: '/usr/share/phppgadmin'
+  register: directory_data
+
+- debug: var=directory_data.stat.path
+
+- name: Create directory if it doesn't already exist
+  file:
+    path: '/usr/share/phppgadmin'
+    state: directory
+    mode: 0755
+    group: apache
+    owner: apache
+  when: not directory_data.stat.exists
+
+- name: "Install phpPgAdmin - Step1"
+  shell: wget -c https://github.com/phppgadmin/phppgadmin/archive/REL_5-6-0.zip; unzip REL_5-6-0.zip
+
+    - name: "Install phpPgAdmin - Step4"
+      shell: chmod -R 755 /usr/share/phppgadmin/
+
+    - name: "Install phpPgAdmin - Step5"
+      shell: chown -R apache:apache /usr/share/phppgadmin
+
+    - name: Transfer phpPgAdmin.conf file
+      copy: src="{{ansible_roles_path}}/files/phpPgAdmin/phppgadmin.conf" dest=/etc/httpd/conf.d/phppgadmin.conf  mode=0755
+
+    - name: Transfer config.inc.php file
+      copy: src="{{ansible_roles_path}}/files/phpPgAdmin/config.inc.php" dest=/usr/share/phppgadmin/conf/config.inc.php  mode=0755
+
+
+    - name: Restart Apache
+      service:
+         name: httpd
+         state: restarted
+         enabled: yes
